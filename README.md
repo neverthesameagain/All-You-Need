@@ -120,7 +120,7 @@ python manage.py runserver
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+We welcome contributions!
 
 ### Areas Needing Help
 1. Real-time chat implementation
