@@ -1,0 +1,340 @@
+{% extends 'content/base.html' %}
+
+{% block title %}DSA Hub - Home{% endblock %}
+
+{% block extra_css %}
+<style>
+  .section-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary-color);
+  }
+  
+  .resource-card, .study-room-card {
+    transition: transform 0.2s;
+  }
+  
+  .resource-card:hover, .study-room-card:hover {
+    transform: translateY(-3px);
+  }
+  
+  .event-card {
+    border-left: 4px solid var(--primary-color);
+  }
+  
+  .article-card {
+    transition: transform 0.2s;
+  }
+  
+  .article-card:hover {
+    transform: translateY(-3px);
+  }
+  
+  .tag-badge {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+    margin-right: 0.5rem;
+    border-radius: 1rem;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    text-decoration: none;
+  }
+  
+  .tag-badge:hover {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .sidebar-section {
+    margin-bottom: 2rem;
+  }
+  
+  .sidebar-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  .study-stats {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .study-stats h3 {
+    font-size: 2rem;
+    margin: 0;
+  }
+
+  .study-stats p {
+    margin: 0;
+    opacity: 0.9;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-3 col-lg-2 sidebar">
+      {% if user.is_authenticated %}
+        <!-- Study Stats Section -->
+        <div class="sidebar-section">
+          <div class="study-stats">
+            <h3>{{ user.study_streak.current_streak|default:"0" }}</h3>
+            <p>Day Study Streak</p>
+          </div>
+          <div class="list-group">
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              Total Sessions
+              <span class="badge bg-primary rounded-pill">
+                {{ user.study_streak.total_study_sessions|default:"0" }}
+              </span>
+            </div>
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              Longest Streak
+              <span class="badge bg-success rounded-pill">
+                {{ user.study_streak.longest_streak|default:"0" }}
+              </span>
+            </div>
+          </div>
+          <a href="{% url 'study_room_list' %}" class="btn btn-primary btn-sm mt-2 w-100">
+            <i class="fas fa-users me-1"></i>Find Study Rooms
+          </a>
+        </div>
+      {% endif %}
+
+      <!-- Communities Section -->
+      <div class="sidebar-section">
+        <h5 class="sidebar-title">
+          <i class="fas fa-users me-2"></i>Communities
+        </h5>
+        <div class="list-group">
+          {% for community in communities %}
+            <a href="{% url 'community_detail' community.id %}" class="list-group-item list-group-item-action">
+              {{ community.name }}
+            </a>
+          {% endfor %}
+        </div>
+        {% if user.is_authenticated %}
+          <a href="{% url 'create_community' %}" class="btn btn-outline-primary btn-sm mt-2 w-100">
+            <i class="fas fa-plus me-1"></i>Create Community
+          </a>
+        {% endif %}
+      </div>
+
+      <!-- Popular Tags Section -->
+      <div class="sidebar-section">
+        <h5 class="sidebar-title">
+          <i class="fas fa-tags me-2"></i>Popular Tags
+        </h5>
+        <div class="d-flex flex-wrap gap-2">
+          {% for tag in popular_tags %}
+            <a href="?tag={{ tag.slug }}" class="tag-badge">
+              {{ tag.name }}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Upcoming Events Section -->
+      <div class="sidebar-section">
+        <h5 class="sidebar-title">
+          <i class="fas fa-calendar me-2"></i>Upcoming Events
+        </h5>
+        <div class="list-group">
+          {% for event in upcoming_events %}
+            <a href="{% url 'event_detail' event.pk %}" class="list-group-item list-group-item-action">
+              <h6 class="mb-1">{{ event.title }}</h6>
+              <small class="text-muted">
+                <i class="fas fa-clock me-1"></i>{{ event.start_time|date:"M d, Y" }}
+              </small>
+            </a>
+          {% endfor %}
+        </div>
+        <a href="{% url 'event_list' %}" class="btn btn-outline-primary btn-sm mt-2 w-100">
+          <i class="fas fa-calendar-alt me-1"></i>View All Events
+        </a>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-md-9 col-lg-10 ms-sm-auto px-md-4">
+      <!-- Active Study Rooms Section -->
+      <section class="mb-5">
+        <h2 class="section-header">
+          <i class="fas fa-users-class me-2"></i>Active Study Rooms
+        </h2>
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+          {% for room in active_study_rooms|slice:":3" %}
+            <div class="col">
+              <div class="card study-room-card h-100">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-primary">{{ room.get_room_type_display }}</span>
+                    {% if room.is_private %}
+                      <span class="badge bg-warning">
+                        <i class="fas fa-lock me-1"></i>Private
+                      </span>
+                    {% endif %}
+                  </div>
+                  <h5 class="card-title">
+                    <a href="{% url 'study_room_detail' room.pk %}" class="text-decoration-none">
+                      {{ room.name }}
+                    </a>
+                  </h5>
+                  <p class="card-text">{{ room.description|truncatewords:15 }}</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                  <small class="text-muted">
+                    <i class="fas fa-users me-1"></i>{{ room.members.count }}/{{ room.max_members }} members
+                    {% if room.course %}
+                      <span class="mx-2">•</span>
+                      <i class="fas fa-book me-1"></i>{{ room.course.name }}
+                    {% endif %}
+                  </small>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="text-center mt-3">
+          <a href="{% url 'study_room_list' %}" class="btn btn-outline-primary">
+            <i class="fas fa-users me-1"></i>Browse All Study Rooms
+          </a>
+          {% if user.is_authenticated %}
+            <a href="{% url 'create_study_room' %}" class="btn btn-primary ms-2">
+              <i class="fas fa-plus me-1"></i>Create Study Room
+            </a>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- Sort and Filter Options -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="btn-group">
+          <a href="?sort=newest" class="btn btn-outline-primary {% if sort_order == 'newest' %}active{% endif %}">
+            Newest
+          </a>
+          <a href="?sort=top" class="btn btn-outline-primary {% if sort_order == 'top' %}active{% endif %}">
+            Top
+          </a>
+          <a href="?sort=hot" class="btn btn-outline-primary {% if sort_order == 'hot' %}active{% endif %}">
+            Hot
+          </a>
+        </div>
+        {% if user.is_authenticated %}
+          <div>
+            <a href="{% url 'create_article' %}" class="btn btn-primary">
+              <i class="fas fa-plus me-1"></i>Create Post
+            </a>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Featured Resources Section -->
+      <section class="mb-5">
+        <h2 class="section-header">
+          <i class="fas fa-star me-2"></i>Featured Resources
+        </h2>
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+          {% for resource in featured_resources|slice:":4" %}
+            <div class="col">
+              <div class="card resource-card h-100">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-primary">{{ resource.get_resource_type_display }}</span>
+                    <span class="badge {% if resource.difficulty == 'beginner' %}bg-success{% elif resource.difficulty == 'intermediate' %}bg-warning{% else %}bg-danger{% endif %}">
+                      {{ resource.get_difficulty_display }}
+                    </span>
+                  </div>
+                  <h5 class="card-title">
+                    <a href="{% url 'resource_detail' resource.pk %}" class="text-decoration-none">
+                      {{ resource.title }}
+                    </a>
+                  </h5>
+                  <p class="card-text">{{ resource.description|truncatewords:20 }}</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                  <small class="text-muted">
+                    <i class="fas fa-user me-1"></i>{{ resource.author.username }}
+                    <span class="mx-2">•</span>
+                    <i class="fas fa-thumbs-up me-1"></i>{{ resource.upvotes }}
+                  </small>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="text-center mt-3">
+          <a href="{% url 'resource_list' %}" class="btn btn-outline-primary">
+            <i class="fas fa-book me-1"></i>Browse All Resources
+          </a>
+        </div>
+      </section>
+
+      <!-- Latest Articles Section -->
+      <section class="mb-5">
+        <h2 class="section-header">
+          <i class="fas fa-newspaper me-2"></i>Latest Articles
+        </h2>
+        {% for article in articles %}
+          <div class="card article-card mb-3">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <h5 class="card-title mb-1">
+                  <a href="{% url 'article_detail' article.pk %}" class="text-decoration-none">
+                    {{ article.title }}
+                  </a>
+                </h5>
+                <a href="{% url 'community_detail' article.community.pk %}" class="badge bg-primary text-decoration-none">
+                  {{ article.community.name }}
+                </a>
+              </div>
+              <p class="card-text text-muted small mb-2">
+                <i class="fas fa-user me-1"></i>{{ article.author.username }}
+                <span class="mx-2">•</span>
+                <i class="fas fa-clock me-1"></i>{{ article.created_at|timesince }} ago
+              </p>
+              <p class="card-text">{{ article.content|striptags|truncatewords:50 }}</p>
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  {% if user.is_authenticated %}
+                    <a href="{% url 'vote_article' article.pk 'up' %}" class="btn btn-sm btn-outline-success me-1">
+                      <i class="fas fa-thumbs-up"></i> {{ article.upvotes }}
+                    </a>
+                    <a href="{% url 'vote_article' article.pk 'down' %}" class="btn btn-sm btn-outline-danger me-2">
+                      <i class="fas fa-thumbs-down"></i> {{ article.downvotes }}
+                    </a>
+                  {% else %}
+                    <span class="text-muted">
+                      <i class="fas fa-thumbs-up me-1"></i>{{ article.upvotes }}
+                      <span class="mx-2">•</span>
+                      <i class="fas fa-thumbs-down me-1"></i>{{ article.downvotes }}
+                    </span>
+                  {% endif %}
+                  <a href="{% url 'article_detail' article.pk %}#comments" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-comments"></i> {{ article.comments.count }}
+                  </a>
+                </div>
+                <div>
+                  {% for tag in article.tags.all %}
+                    <a href="?tag={{ tag.slug }}" class="tag-badge">{{ tag.name }}</a>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>No articles found.
+          </div>
+        {% endfor %}
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

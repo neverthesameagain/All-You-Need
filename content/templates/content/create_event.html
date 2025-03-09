@@ -1,0 +1,190 @@
+{% extends 'content/base.html' %}
+
+{% block title %}Create Event - DSA Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+  .tag-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  
+  .tag-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  
+  .tag-item:hover {
+    background-color: var(--secondary-color);
+  }
+  
+  .tag-item input[type="checkbox"] {
+    margin-right: 8px;
+  }
+  
+  .location-section {
+    display: none;
+  }
+  
+  .location-section.visible {
+    display: block;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <h1 class="page-title mb-4">
+        <i class="fas fa-calendar-plus me-2"></i>Create Event
+      </h1>
+
+      <div class="card">
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            
+            <!-- Basic Information -->
+            <h5 class="mb-3">Basic Information</h5>
+            <div class="mb-4">
+              <label for="{{ form.title.id_for_label }}" class="form-label">Title</label>
+              {{ form.title }}
+              {{ form.title.errors }}
+            </div>
+            
+            <div class="mb-4">
+              <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+              {{ form.description }}
+              {{ form.description.errors }}
+              <div class="form-text">Describe what participants can expect from this event.</div>
+            </div>
+            
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <label for="{{ form.event_type.id_for_label }}" class="form-label">Event Type</label>
+                {{ form.event_type }}
+                {{ form.event_type.errors }}
+              </div>
+              <div class="col-md-6">
+                <label for="{{ form.community.id_for_label }}" class="form-label">Community</label>
+                {{ form.community }}
+                {{ form.community.errors }}
+              </div>
+            </div>
+            
+            <!-- Date and Time -->
+            <h5 class="mb-3">Date and Time</h5>
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <label for="{{ form.start_time.id_for_label }}" class="form-label">Start Time</label>
+                {{ form.start_time }}
+                {{ form.start_time.errors }}
+              </div>
+              <div class="col-md-6">
+                <label for="{{ form.end_time.id_for_label }}" class="form-label">End Time</label>
+                {{ form.end_time }}
+                {{ form.end_time.errors }}
+              </div>
+            </div>
+            
+            <!-- Location -->
+            <h5 class="mb-3">Location</h5>
+            <div class="mb-4">
+              <div class="form-check mb-2">
+                {{ form.is_online }}
+                <label class="form-check-label" for="{{ form.is_online.id_for_label }}">
+                  This is an online event
+                </label>
+              </div>
+              
+              <div id="locationSection" class="location-section">
+                <label for="{{ form.location.id_for_label }}" class="form-label">Location</label>
+                {{ form.location }}
+                {{ form.location.errors }}
+                {% if form.location.help_text %}
+                  <div class="form-text">{{ form.location.help_text }}</div>
+                {% endif %}
+              </div>
+            </div>
+            
+            <!-- Capacity and Prerequisites -->
+            <h5 class="mb-3">Additional Details</h5>
+            <div class="mb-4">
+              <label for="{{ form.max_participants.id_for_label }}" class="form-label">Maximum Participants</label>
+              {{ form.max_participants }}
+              {{ form.max_participants.errors }}
+              {% if form.max_participants.help_text %}
+                <div class="form-text">{{ form.max_participants.help_text }}</div>
+              {% endif %}
+            </div>
+            
+            <div class="mb-4">
+              <label for="{{ form.prerequisites.id_for_label }}" class="form-label">Prerequisites</label>
+              {{ form.prerequisites }}
+              {{ form.prerequisites.errors }}
+              {% if form.prerequisites.help_text %}
+                <div class="form-text">{{ form.prerequisites.help_text }}</div>
+              {% endif %}
+            </div>
+            
+            <!-- Tags -->
+            <h5 class="mb-3">Tags</h5>
+            <div class="mb-4">
+              {{ form.tags.errors }}
+              <div class="tag-list">
+                {% for checkbox in form.tags %}
+                  <div class="tag-item">
+                    {{ checkbox.tag }}
+                    <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
+                  </div>
+                {% endfor %}
+              </div>
+              {% if form.tags.help_text %}
+                <div class="form-text">{{ form.tags.help_text }}</div>
+              {% endif %}
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <a href="{% url 'event_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Back to Events
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-calendar-plus me-1"></i> Create Event
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const onlineCheckbox = document.getElementById('{{ form.is_online.id_for_label }}');
+    const locationSection = document.getElementById('locationSection');
+    
+    function toggleLocationSection() {
+      if (onlineCheckbox.checked) {
+        locationSection.classList.add('visible');
+      } else {
+        locationSection.classList.remove('visible');
+      }
+    }
+    
+    onlineCheckbox.addEventListener('change', toggleLocationSection);
+    toggleLocationSection();  // Initial state
+  });
+</script>
+{% endblock %} 

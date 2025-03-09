@@ -1,0 +1,232 @@
+{% extends 'content/base.html' %}
+
+{% block title %}Edit Profile - DSA Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+  .interests-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  
+  .interest-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  
+  .interest-item:hover {
+    background-color: var(--secondary-color);
+  }
+  
+  .interest-item input[type="checkbox"] {
+    margin-right: 8px;
+  }
+  
+  .mentor-section {
+    display: none;
+  }
+  
+  .mentor-section.visible {
+    display: block;
+  }
+  
+  .current-picture {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-top: 10px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <h1 class="page-title">
+      <i class="fas fa-user-edit me-2"></i>Edit Profile
+    </h1>
+
+    <div class="card">
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          
+          <!-- User Information -->
+          <h5 class="mb-3">Basic Information</h5>
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="{{ user_form.first_name.id_for_label }}" class="form-label">First Name</label>
+                {{ user_form.first_name }}
+                {{ user_form.first_name.errors }}
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="{{ user_form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                {{ user_form.last_name }}
+                {{ user_form.last_name.errors }}
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="mb-3">
+                <label for="{{ user_form.email.id_for_label }}" class="form-label">Email</label>
+                {{ user_form.email }}
+                {{ user_form.email.errors }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Profile Details -->
+          <h5 class="mb-3">Profile Details</h5>
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="{{ profile_form.expertise_level.id_for_label }}" class="form-label">Expertise Level</label>
+                {{ profile_form.expertise_level }}
+                {{ profile_form.expertise_level.errors }}
+                {% if profile_form.expertise_level.help_text %}
+                  <div class="form-text">{{ profile_form.expertise_level.help_text }}</div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="{{ profile_form.location.id_for_label }}" class="form-label">Location</label>
+                {{ profile_form.location }}
+                {{ profile_form.location.errors }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Bio -->
+          <div class="mb-4">
+            <label for="{{ profile_form.bio.id_for_label }}" class="form-label">Bio</label>
+            {{ profile_form.bio }}
+            {{ profile_form.bio.errors }}
+          </div>
+
+          <!-- Profile Picture -->
+          <div class="mb-4">
+            <label for="{{ profile_form.profile_picture.id_for_label }}" class="form-label">Profile Picture</label>
+            {{ profile_form.profile_picture }}
+            {{ profile_form.profile_picture.errors }}
+            {% if user.profile.profile_picture %}
+              <img src="{{ user.profile.profile_picture.url }}" alt="Current Profile Picture" class="current-picture">
+            {% endif %}
+          </div>
+
+          <!-- Social Links -->
+          <h5 class="mb-3">Social Links</h5>
+          <div class="row mb-4">
+            <div class="col-md-4">
+              <div class="mb-3">
+                <label for="{{ profile_form.github_url.id_for_label }}" class="form-label">
+                  <i class="fab fa-github me-1"></i> GitHub
+                </label>
+                {{ profile_form.github_url }}
+                {{ profile_form.github_url.errors }}
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="mb-3">
+                <label for="{{ profile_form.linkedin_url.id_for_label }}" class="form-label">
+                  <i class="fab fa-linkedin me-1"></i> LinkedIn
+                </label>
+                {{ profile_form.linkedin_url }}
+                {{ profile_form.linkedin_url.errors }}
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="mb-3">
+                <label for="{{ profile_form.website_url.id_for_label }}" class="form-label">
+                  <i class="fas fa-globe me-1"></i> Website
+                </label>
+                {{ profile_form.website_url }}
+                {{ profile_form.website_url.errors }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Interests -->
+          <h5 class="mb-3">Interests</h5>
+          <div class="mb-4">
+            {{ profile_form.interests.errors }}
+            <div class="interests-list">
+              {% for checkbox in profile_form.interests %}
+                <div class="interest-item">
+                  {{ checkbox.tag }}
+                  <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
+                </div>
+              {% endfor %}
+            </div>
+            {% if profile_form.interests.help_text %}
+              <div class="form-text">{{ profile_form.interests.help_text }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Mentorship -->
+          <h5 class="mb-3">Mentorship</h5>
+          <div class="mb-4">
+            <div class="form-check mb-3">
+              {{ profile_form.is_mentor }}
+              <label class="form-check-label" for="{{ profile_form.is_mentor.id_for_label }}">
+                I want to be a mentor
+              </label>
+              {% if profile_form.is_mentor.help_text %}
+                <div class="form-text">{{ profile_form.is_mentor.help_text }}</div>
+              {% endif %}
+            </div>
+            
+            <div id="mentorSection" class="mentor-section {% if user.profile.is_mentor %}visible{% endif %}">
+              <label for="{{ profile_form.mentor_topics.id_for_label }}" class="form-label">Mentorship Topics</label>
+              {{ profile_form.mentor_topics }}
+              {{ profile_form.mentor_topics.errors }}
+              {% if profile_form.mentor_topics.help_text %}
+                <div class="form-text">{{ profile_form.mentor_topics.help_text }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between">
+            <a href="{% url 'profile_detail' request.user.username %}" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left me-1"></i> Back to Profile
+            </a>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save me-1"></i> Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const mentorCheckbox = document.getElementById('{{ profile_form.is_mentor.id_for_label }}');
+    const mentorSection = document.getElementById('mentorSection');
+    
+    function toggleMentorSection() {
+      if (mentorCheckbox.checked) {
+        mentorSection.classList.add('visible');
+      } else {
+        mentorSection.classList.remove('visible');
+      }
+    }
+    
+    mentorCheckbox.addEventListener('change', toggleMentorSection);
+  });
+</script>
+{% endblock %} 

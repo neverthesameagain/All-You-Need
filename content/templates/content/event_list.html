@@ -1,0 +1,217 @@
+{% extends 'content/base.html' %}
+
+{% block title %}Events - DSA Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+  .event-card {
+    transition: transform 0.2s;
+  }
+  
+  .event-card:hover {
+    transform: translateY(-2px);
+  }
+  
+  .event-type-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+  }
+  
+  .event-status {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+  }
+  
+  .status-upcoming { background-color: #28a745; }
+  .status-ongoing { background-color: #007bff; }
+  .status-completed { background-color: #6c757d; }
+  .status-cancelled { background-color: #dc3545; }
+  
+  .filters {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title">
+      <i class="fas fa-calendar-alt me-2"></i>Events
+    </h1>
+    {% if user.is_authenticated %}
+      <a href="{% url 'create_event' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> Create Event
+      </a>
+    {% endif %}
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <form method="get" class="row g-3">
+      <div class="col-md-3">
+        <label for="type" class="form-label">Event Type</label>
+        <select name="type" id="type" class="form-select">
+          <option value="">All Types</option>
+          {% for type_code, type_name in event_types %}
+            <option value="{{ type_code }}" {% if request.GET.type == type_code %}selected{% endif %}>
+              {{ type_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label for="status" class="form-label">Status</label>
+        <select name="status" id="status" class="form-select">
+          <option value="">All Status</option>
+          {% for status_code, status_name in status_choices %}
+            <option value="{{ status_code }}" {% if request.GET.status == status_code %}selected{% endif %}>
+              {{ status_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label for="community" class="form-label">Community</label>
+        <select name="community" id="community" class="form-select">
+          <option value="">All Communities</option>
+          {% for community in communities %}
+            <option value="{{ community.id }}" {% if request.GET.community == community.id|stringformat:"i" %}selected{% endif %}>
+              {{ community.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="fas fa-filter me-1"></i> Apply Filters
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="row">
+    <!-- Main Content -->
+    <div class="col-md-8">
+      {% if events %}
+        <div class="row row-cols-1 g-4">
+          {% for event in events %}
+            <div class="col">
+              <div class="card event-card h-100">
+                <div class="card-body">
+                  <span class="badge bg-primary event-type-badge">{{ event.get_event_type_display }}</span>
+                  <h5 class="card-title mb-3">
+                    <span class="event-status status-{{ event.status }}"></span>
+                    <a href="{% url 'event_detail' event.pk %}" class="text-decoration-none">
+                      {{ event.title }}
+                    </a>
+                  </h5>
+                  <p class="card-text text-muted mb-2">
+                    <i class="fas fa-calendar me-1"></i>
+                    {{ event.start_time|date:"M d, Y" }} at {{ event.start_time|date:"g:i A" }}
+                  </p>
+                  <p class="card-text text-muted mb-3">
+                    <i class="fas fa-map-marker-alt me-1"></i>
+                    {% if event.is_online %}Online{% else %}{{ event.location }}{% endif %}
+                  </p>
+                  <p class="card-text mb-3">{{ event.description|truncatewords:30 }}</p>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <small class="text-muted">
+                        <i class="fas fa-users me-1"></i>
+                        {{ event.participant_count }}
+                        {% if event.max_participants %}
+                          / {{ event.max_participants }}
+                        {% endif %}
+                        participants
+                      </small>
+                    </div>
+                    <div>
+                      {% for tag in event.tags.all %}
+                        <a href="{% url 'tag_detail' tag.slug %}" class="badge bg-secondary text-decoration-none me-1">
+                          {{ tag.name }}
+                        </a>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-1"></i>
+          No events found matching your criteria.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
+      {% if user.is_authenticated %}
+        <!-- Your Events -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Your Events</h5>
+          </div>
+          <div class="card-body">
+            {% if user_events %}
+              <div class="list-group list-group-flush">
+                {% for event_data in user_events %}
+                  <a href="{% url 'event_detail' event_data.event.pk %}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                      <h6 class="mb-1">{{ event_data.event.title }}</h6>
+                      <small class="text-muted">{{ event_data.event.start_time|date:"M d" }}</small>
+                    </div>
+                    <small class="text-muted">
+                      {{ event_data.event.get_event_type_display }} •
+                      {{ event_data.participant.get_role_display }}
+                    </small>
+                  </a>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="text-muted mb-0">You haven't joined any events yet.</p>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Upcoming Events -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Upcoming Events</h5>
+        </div>
+        <div class="card-body">
+          {% if upcoming_events %}
+            <div class="list-group list-group-flush">
+              {% for event in upcoming_events %}
+                <a href="{% url 'event_detail' event.pk %}" class="list-group-item list-group-item-action">
+                  <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">{{ event.title }}</h6>
+                    <small class="text-muted">{{ event.start_time|date:"M d" }}</small>
+                  </div>
+                  <small class="text-muted">
+                    {{ event.get_event_type_display }} •
+                    {{ event.participant_count }} participants
+                  </small>
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted mb-0">No upcoming events scheduled.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

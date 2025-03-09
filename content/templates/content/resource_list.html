@@ -1,0 +1,244 @@
+{% extends 'content/base.html' %}
+
+{% block title %}Resource Library - DSA Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+  .resource-card {
+    transition: transform 0.2s;
+  }
+  
+  .resource-card:hover {
+    transform: translateY(-2px);
+  }
+  
+  .resource-type-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+  }
+  
+  .difficulty-badge {
+    position: absolute;
+    top: 1rem;
+    right: 5rem;
+  }
+  
+  .filters {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+  }
+  
+  .category-list {
+    list-style: none;
+    padding-left: 0;
+  }
+  
+  .category-list ul {
+    list-style: none;
+    padding-left: 1.5rem;
+  }
+  
+  .category-list li {
+    margin: 0.5rem 0;
+  }
+  
+  .category-list a {
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  .category-list a:hover {
+    color: var(--bs-primary);
+  }
+  
+  .active-category {
+    font-weight: bold;
+    color: var(--bs-primary);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title">
+      <i class="fas fa-book me-2"></i>Resource Library
+    </h1>
+    {% if user.is_authenticated %}
+      <div>
+        <a href="{% url 'create_resource' %}" class="btn btn-primary me-2">
+          <i class="fas fa-plus me-1"></i> Add Resource
+        </a>
+        <a href="{% url 'create_category' %}" class="btn btn-outline-primary">
+          <i class="fas fa-folder-plus me-1"></i> Add Category
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <form method="get" class="row g-3">
+      <div class="col-md-3">
+        <label for="type" class="form-label">Resource Type</label>
+        <select name="type" id="type" class="form-select">
+          <option value="">All Types</option>
+          {% for type_code, type_name in resource_types %}
+            <option value="{{ type_code }}" {% if current_type == type_code %}selected{% endif %}>
+              {{ type_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label for="difficulty" class="form-label">Difficulty</label>
+        <select name="difficulty" id="difficulty" class="form-select">
+          <option value="">All Levels</option>
+          {% for level_code, level_name in difficulty_levels %}
+            <option value="{{ level_code }}" {% if current_difficulty == level_code %}selected{% endif %}>
+              {{ level_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label for="sort" class="form-label">Sort By</label>
+        <select name="sort" id="sort" class="form-select">
+          <option value="newest" {% if sort_order == 'newest' %}selected{% endif %}>Newest</option>
+          <option value="oldest" {% if sort_order == 'oldest' %}selected{% endif %}>Oldest</option>
+          <option value="top" {% if sort_order == 'top' %}selected{% endif %}>Top Rated</option>
+        </select>
+      </div>
+      <div class="col-md-3 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="fas fa-filter me-1"></i> Apply Filters
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-3">
+      <!-- Categories -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Categories</h5>
+        </div>
+        <div class="card-body">
+          <ul class="category-list">
+            <!-- IOC Categories -->
+            <li class="mb-3">
+              <h6 class="mb-2">Institute Offered Courses</h6>
+              <ul>
+                {% for category in categories.ioc %}
+                  <li>
+                    <a href="?category={{ category.slug }}" class="{% if current_category == category.slug %}active-category{% endif %}">
+                      {{ category.name }}
+                    </a>
+                  </li>
+                {% empty %}
+                  <li class="text-muted">No IOC topics yet</li>
+                {% endfor %}
+              </ul>
+            </li>
+            
+            <!-- DNT Categories -->
+            <li>
+              <h6 class="mb-2">Did Not Know That</h6>
+              <ul>
+                {% for category in categories.dnt %}
+                  <li>
+                    <a href="?category={{ category.slug }}" class="{% if current_category == category.slug %}active-category{% endif %}">
+                      {{ category.name }}
+                    </a>
+                  </li>
+                {% empty %}
+                  <li class="text-muted">No DNT topics yet</li>
+                {% endfor %}
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Popular Tags -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Popular Tags</h5>
+        </div>
+        <div class="card-body">
+          {% for tag in popular_tags %}
+            <a href="?tag={{ tag.slug }}" class="badge bg-secondary text-decoration-none me-1 mb-1">
+              {{ tag.name }} ({{ tag.resource_count }})
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-md-9">
+      {% if resources %}
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+          {% for resource in resources %}
+            <div class="col">
+              <div class="card resource-card h-100">
+                <div class="card-body">
+                  <span class="badge bg-primary resource-type-badge">
+                    {{ resource.get_resource_type_display }}
+                  </span>
+                  <span class="badge {% if resource.difficulty == 'beginner' %}bg-success{% elif resource.difficulty == 'intermediate' %}bg-warning{% else %}bg-danger{% endif %} difficulty-badge">
+                    {{ resource.get_difficulty_display }}
+                  </span>
+                  <h5 class="card-title mb-3">
+                    <a href="{% url 'resource_detail' resource.pk %}" class="text-decoration-none">
+                      {{ resource.title }}
+                    </a>
+                  </h5>
+                  <p class="card-text text-muted mb-2">
+                    <i class="fas fa-user me-1"></i>
+                    {{ resource.author.username }}
+                    <span class="mx-2">•</span>
+                    <i class="fas fa-clock me-1"></i>
+                    {{ resource.created_at|timesince }} ago
+                  </p>
+                  <p class="card-text mb-3">{{ resource.description|truncatewords:30 }}</p>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <small class="text-muted">
+                        <i class="fas fa-thumbs-up me-1"></i>
+                        {{ resource.net_votes }} votes
+                      </small>
+                      <span class="mx-2">•</span>
+                      <small class="text-muted">
+                        <i class="fas fa-comments me-1"></i>
+                        {{ resource.comments.count }} comments
+                      </small>
+                    </div>
+                    <div>
+                      {% for tag in resource.tags.all %}
+                        <a href="?tag={{ tag.slug }}" class="badge bg-secondary text-decoration-none me-1">
+                          {{ tag.name }}
+                        </a>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-1"></i>
+          No resources found matching your criteria.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %} 

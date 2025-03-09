@@ -1,0 +1,48 @@
+<!-- Single Comment with Replies -->
+<div class="comment-card" id="comment-{{ comment.id }}">
+  <div class="comment-header">
+    <span class="comment-author">{{ comment.user.username }}</span>
+    <span class="comment-date">{{ comment.created_at|date:"M d, Y H:i" }}</span>
+  </div>
+  <div class="comment-content">
+    {{ comment.content }}
+  </div>
+  <div class="comment-actions">
+    <a href="{% url 'vote_comment' comment.pk 'up' %}" class="comment-action">
+      <i class="fas fa-arrow-up"></i> {{ comment.upvotes }}
+    </a>
+    <a href="{% url 'vote_comment' comment.pk 'down' %}" class="comment-action">
+      <i class="fas fa-arrow-down"></i> {{ comment.downvotes }}
+    </a>
+    {% if request.user.is_authenticated %}
+      <a href="#" class="comment-action reply-toggle" data-comment-id="{{ comment.id }}">
+        <i class="fas fa-reply me-1"></i> Reply
+      </a>
+    {% endif %}
+  </div>
+  
+  <!-- Reply Form (hidden by default) -->
+  {% if request.user.is_authenticated %}
+    <div class="reply-form" id="reply-form-{{ comment.id }}">
+      <form method="post" action="{% url 'article_detail' comment.article.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="parent_id" value="{{ comment.id }}">
+        <div class="mb-3">
+          <textarea name="content" rows="2" class="form-control" placeholder="Write your reply here..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">
+          <i class="fas fa-paper-plane me-1"></i> Submit Reply
+        </button>
+      </form>
+    </div>
+  {% endif %}
+  
+  <!-- Nested Comments (Replies) -->
+  {% if comment.replies.all %}
+    <div class="nested-comments mt-3">
+      {% for reply in comment.replies.all %}
+        {% include "content/comment.html" with comment=reply %}
+      {% endfor %}
+    </div>
+  {% endif %}
+</div> 

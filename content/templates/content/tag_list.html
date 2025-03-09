@@ -1,0 +1,61 @@
+{% extends 'content/base.html' %}
+
+{% block title %}Tags - DSA Hub{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <h1 class="page-title">
+      <i class="fas fa-tags me-2"></i>Tags
+    </h1>
+
+    {% if request.user.is_authenticated %}
+      <div class="mb-4">
+        <a href="{% url 'create_tag' %}" class="btn btn-primary">
+          <i class="fas fa-plus me-1"></i> Create New Tag
+        </a>
+      </div>
+    {% endif %}
+
+    {% if tags %}
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for tag in tags %}
+          <div class="col">
+            <div class="card h-100">
+              <div class="card-body">
+                <h5 class="card-title">
+                  <a href="{% url 'tag_detail' tag.slug %}" class="text-decoration-none">
+                    <i class="fas fa-tag me-2"></i>{{ tag.name }}
+                  </a>
+                </h5>
+                {% if tag.description %}
+                  <p class="card-text text-muted">{{ tag.description|truncatewords:30 }}</p>
+                {% endif %}
+                <div class="mt-3">
+                  <span class="badge bg-primary">
+                    <i class="fas fa-newspaper me-1"></i> {{ tag.article_count }} articles
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="alert alert-light text-center p-5">
+        <i class="fas fa-tags fa-3x mb-3"></i>
+        <p>No tags available.</p>
+        {% if request.user.is_authenticated %}
+          <a href="{% url 'create_tag' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> Create First Tag
+          </a>
+        {% else %}
+          <p>
+            <a href="{% url 'login' %}">Login</a> or <a href="{% url 'register' %}">Register</a> to create tags.
+          </p>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %} 

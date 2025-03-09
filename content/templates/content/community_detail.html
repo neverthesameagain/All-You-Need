@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ community.name }} - DSA Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #4a6fdc;
+      --secondary-color: #f8f9fa;
+      --accent-color: #6c757d;
+      --success-color: #28a745;
+      --danger-color: #dc3545;
+      --text-color: #212529;
+      --light-text: #6c757d;
+      --border-color: #dee2e6;
+      --karma-color: #ff4500;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text-color);
+      background-color: #f5f7fa;
+      padding-top: 70px;
+    }
+    
+    .navbar {
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      background-color: white !important;
+    }
+    
+    .navbar-brand {
+      font-weight: 700;
+      color: var(--primary-color) !important;
+    }
+    
+    .nav-link {
+      color: var(--text-color) !important;
+      font-weight: 500;
+    }
+    
+    .nav-link:hover {
+      color: var(--primary-color) !important;
+    }
+    
+    .container {
+      max-width: 1200px;
+    }
+    
+    .card {
+      border-radius: 10px;
+      border: none;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+    }
+    
+    .community-header {
+      background-color: white;
+      border-radius: 10px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      position: relative;
+    }
+    
+    .community-banner {
+      height: 150px;
+      background-color: var(--primary-color);
+      background-size: cover;
+      background-position: center;
+      border-radius: 10px 10px 0 0;
+      position: relative;
+    }
+    
+    .community-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background-color: white;
+      position: absolute;
+      bottom: -40px;
+      left: 25px;
+      border: 4px solid white;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    .community-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .community-icon-placeholder {
+      font-size: 2rem;
+      color: var(--primary-color);
+    }
+    
+    .community-title {
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 10px;
+      margin-top: 10px;
+      padding-left: 90px;
+    }
+    
+    .community-description {
+      color: var(--light-text);
+      margin-bottom: 20px;
+    }
+    
+    .article-card {
+      transition: transform 0.2s;
+    }
+    
+    .article-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .article-title {
+      font-weight: 600;
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+    
+    .article-title:hover {
+      text-decoration: underline;
+    }
+    
+    .article-meta {
+      color: var(--light-text);
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+    }
+    
+    .article-excerpt {
+      color: var(--text-color);
+      margin-bottom: 15px;
+      line-height: 1.5;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+    
+    .btn-primary:hover {
+      background-color: #3a5fc8;
+      border-color: #3a5fc8;
+    }
+    
+    .btn-warning {
+      background-color: #f0ad4e;
+      border-color: #f0ad4e;
+      color: white;
+    }
+    
+    .btn-warning:hover {
+      background-color: #ec971f;
+      border-color: #ec971f;
+      color: white;
+    }
+    
+    .btn-success {
+      background-color: var(--success-color);
+      border-color: var(--success-color);
+    }
+    
+    .btn-success:hover {
+      background-color: #218838;
+      border-color: #218838;
+    }
+    
+    .btn-outline-secondary {
+      color: var(--accent-color);
+      border-color: var(--accent-color);
+    }
+    
+    .btn-outline-secondary:hover {
+      background-color: var(--accent-color);
+      color: white;
+    }
+    
+    .community-stats {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-item {
+      background-color: white;
+      border-radius: 10px;
+      padding: 15px;
+      flex: 1;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--light-text);
+    }
+    
+    .section-title {
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .section-title i {
+      margin-right: 10px;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .empty-state i {
+      font-size: 3rem;
+      color: var(--light-text);
+      margin-bottom: 15px;
+    }
+    
+    .empty-state p {
+      color: var(--light-text);
+      margin-bottom: 20px;
+    }
+    
+    .sidebar-card {
+      background-color: white;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .sidebar-header {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 15px;
+      font-weight: 600;
+    }
+    
+    .sidebar-body {
+      padding: 15px;
+    }
+    
+    .sidebar-footer {
+      padding: 15px;
+      background-color: var(--secondary-color);
+      border-top: 1px solid var(--border-color);
+    }
+    
+    .rules-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .rule-item {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .rule-item:last-child {
+      border-bottom: none;
+    }
+    
+    .rule-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    
+    .rule-description {
+      font-size: 0.9rem;
+      color: var(--light-text);
+    }
+    
+    .moderator-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .moderator-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 0;
+    }
+    
+    .moderator-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: var(--secondary-color);
+      margin-right: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      color: var(--accent-color);
+    }
+    
+    .moderator-name {
+      font-weight: 500;
+    }
+    
+    .sort-options {
+      margin-bottom: 20px;
+    }
+    
+    .sort-btn {
+      background-color: white;
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      margin-right: 10px;
+      border-radius: 20px;
+      padding: 5px 15px;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    
+    .sort-btn:hover, .sort-btn.active {
+      background-color: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+    
+    @media (max-width: 992px) {
+      .sidebar {
+        margin-top: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+    <div class="container">
+      <a class="navbar-brand" href="{% url 'home' %}">DSA Hub</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          {% if request.user.is_authenticated %}
+            <li class="nav-item">
+              <span class="nav-link">Welcome, {{ request.user.username }}</span>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'dashboard' %}">
+                <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'profile' %}">
+                <i class="fas fa-user me-1"></i> Profile
+              </a>
+            </li>
+            <li class="nav-item">
+              <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-link nav-link" style="padding:0;">
+                  <i class="fas fa-sign-out-alt me-1"></i> Logout
+                </button>
+              </form>
+            </li>
+          {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'login' %}">
+                <i class="fas fa-sign-in-alt me-1"></i> Login
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'register' %}">
+                <i class="fas fa-user-plus me-1"></i> Register
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mt-4">
+    <!-- Community Header -->
+    <div class="community-header">
+      <div class="community-banner" style="{% if community.banner_image %}background-image: url('{{ community.banner_image.url }}');{% else %}background-color: var(--primary-color);{% endif %}">
+        <div class="community-icon">
+          {% if community.icon %}
+            <img src="{{ community.icon.url }}" alt="{{ community.name }} icon">
+          {% else %}
+            <div class="community-icon-placeholder">
+              <i class="fas fa-users"></i>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <h1 class="community-title">
+        {{ community.name }}
+      </h1>
+      <p class="community-description">{{ community.description }}</p>
+      
+      <!-- Community Stats -->
+      <div class="community-stats">
+        <div class="stat-item">
+          <div class="stat-value">{{ community.members.count }}</div>
+          <div class="stat-label">Members</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">{{ articles.count }}</div>
+          <div class="stat-label">Articles</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">{{ community.created_at|date:"M Y" }}</div>
+          <div class="stat-label">Created</div>
+        </div>
+      </div>
+
+      <!-- Join/Leave Button -->
+      {% if request.user.is_authenticated %}
+        <div class="d-flex gap-2">
+          {% if is_member %}
+            <a href="{% url 'leave_community' community.id %}" class="btn btn-warning">
+              <i class="fas fa-sign-out-alt me-1"></i> Leave Community
+            </a>
+            <a href="{% url 'community_create_article' community.id %}" class="btn btn-primary">
+              <i class="fas fa-plus me-1"></i> Add Article
+            </a>
+          {% else %}
+            <a href="{% url 'join_community' community.id %}" class="btn btn-success">
+              <i class="fas fa-user-plus me-1"></i> Join Community
+            </a>
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>
+          <a href="{% url 'login' %}">Login</a> or <a href="{% url 'register' %}">Register</a> to join this community and post articles.
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="row">
+      <!-- Main Content -->
+      <div class="col-lg-8">
+        <!-- Sorting Options -->
+        <div class="sort-options">
+          <a href="?sort=newest" class="sort-btn {% if request.GET.sort != 'oldest' %}active{% endif %}">
+            <i class="fas fa-clock me-1"></i> Newest
+          </a>
+          <a href="?sort=oldest" class="sort-btn {% if request.GET.sort == 'oldest' %}active{% endif %}">
+            <i class="fas fa-history me-1"></i> Oldest
+          </a>
+          <a href="?sort=top" class="sort-btn {% if request.GET.sort == 'top' %}active{% endif %}">
+            <i class="fas fa-fire me-1"></i> Top
+          </a>
+        </div>
+        
+        <!-- Articles Section -->
+        <h2 class="section-title">
+          <i class="fas fa-newspaper"></i> Articles in {{ community.name }}
+        </h2>
+        
+        {% if articles %}
+          {% for article in articles %}
+            <div class="card article-card">
+              <div class="card-body">
+                <h4>
+                  <a href="{% url 'article_detail' article.pk %}" class="article-title">{{ article.title }}</a>
+                </h4>
+                <div class="article-meta">
+                  <i class="fas fa-user me-1"></i> {{ article.author.username }}
+                  <i class="fas fa-calendar-alt ms-3 me-1"></i> {{ article.created_at|date:"M d, Y" }}
+                  <i class="fas fa-comments ms-3 me-1"></i> {{ article.comments.count }} comments
+                  <i class="fas fa-arrow-up ms-3 me-1"></i> {{ article.upvotes }}
+                  <i class="fas fa-arrow-down ms-1 me-1"></i> {{ article.downvotes }}
+                </div>
+                <div class="article-excerpt">
+                  {{ article.content|truncatewords:30|safe }}
+                </div>
+                <a href="{% url 'article_detail' article.pk %}" class="btn btn-sm btn-outline-primary">
+                  <i class="fas fa-book-reader me-1"></i> Read More
+                </a>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">
+            <i class="far fa-newspaper"></i>
+            <p>No articles in this community yet.</p>
+            {% if is_member %}
+              <a href="{% url 'community_create_article' community.id %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Create the First Article
+              </a>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+      
+      <!-- Sidebar -->
+      <div class="col-lg-4 sidebar">
+        <!-- About Community -->
+        <div class="sidebar-card">
+          <div class="sidebar-header">
+            <i class="fas fa-info-circle me-2"></i> About Community
+          </div>
+          <div class="sidebar-body">
+            <p>{{ community.description }}</p>
+            <div class="d-flex justify-content-between">
+              <div>
+                <i class="fas fa-users me-1"></i> {{ community.members.count }} members
+              </div>
+              <div>
+                <i class="fas fa-calendar-alt me-1"></i> Created {{ community.created_at|date:"M d, Y" }}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Community Rules -->
+        <div class="sidebar-card">
+          <div class="sidebar-header">
+            <i class="fas fa-gavel me-2"></i> Community Rules
+          </div>
+          <div class="sidebar-body">
+            {% if community.rules %}
+              <div class="rules-list">
+                {% for rule in community.rules.splitlines %}
+                  {% if rule %}
+                    <div class="rule-item">
+                      <div class="rule-title">Rule {{ forloop.counter }}</div>
+                      <div class="rule-description">{{ rule }}</div>
+                    </div>
+                  {% endif %}
+                {% empty %}
+                  <p class="text-muted">No specific rules have been set for this community.</p>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="text-muted">No specific rules have been set for this community.</p>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Moderators -->
+        <div class="sidebar-card">
+          <div class="sidebar-header">
+            <i class="fas fa-shield-alt me-2"></i> Moderators
+          </div>
+          <div class="sidebar-body">
+            {% if community.moderators.all %}
+              <ul class="moderator-list">
+                {% for moderator in community.moderators.all %}
+                  <li class="moderator-item">
+                    <div class="moderator-avatar">
+                      {% if moderator.profile.profile_picture %}
+                        <img src="{{ moderator.profile.profile_picture.url }}" alt="{{ moderator.username }}">
+                      {% else %}
+                        <i class="fas fa-user"></i>
+                      {% endif %}
+                    </div>
+                    <div class="moderator-name">u/{{ moderator.username }}</div>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-muted">No moderators assigned yet.</p>
+            {% endif %}
+          </div>
+          <div class="sidebar-footer">
+            <a href="{% url 'community_list' %}" class="btn btn-sm btn-outline-secondary w-100">
+              <i class="fas fa-arrow-left me-1"></i> Back to Communities
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS and dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

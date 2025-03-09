@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ community.name }} - DSA Hub</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="{% url 'home' %}">DSA Hub</a>
+    <!-- Other nav elements... -->
+  </nav>
+
+  <div class="container mt-4">
+    <h1>{{ community.name }}</h1>
+    <p>{{ community.description }}</p>
+    <hr>
+    <h2>Articles in this Community</h2>
+    {% if articles %}
+      {% for article in articles %}
+        <div class="card mb-3">
+          <div class="card-body">
+            <h4>
+              <a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a>
+            </h4>
+            <p class="text-muted">
+              Posted on {{ article.created_at|date:"M d, Y" }} by {{ article.author.username }}
+            </p>
+            <p>{{ article.content|truncatewords:30|safe }}</p>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No articles in this community yet.</p>
+    {% endif %}
+    <a href="{% url 'community_list' %}" class="btn btn-secondary">Back to Communities</a>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

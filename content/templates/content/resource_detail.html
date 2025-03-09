@@ -1,0 +1,307 @@
+{% extends 'content/base.html' %}
+
+{% block title %}{{ resource.title }} - DSA Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+  .resource-header {
+    background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-info) 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+  }
+  
+  .resource-meta {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+  }
+  
+  .resource-content {
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+  
+  .comment-thread {
+    margin-left: 3rem;
+    border-left: 2px solid #dee2e6;
+    padding-left: 1rem;
+  }
+  
+  .comment {
+    margin-bottom: 1rem;
+  }
+  
+  .comment-actions {
+    font-size: 0.9rem;
+  }
+  
+  .comment-form {
+    margin-bottom: 2rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="resource-header">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h1 class="mb-3">{{ resource.title }}</h1>
+        <div class="d-flex align-items-center">
+          <span class="badge bg-light text-dark me-2">
+            {{ resource.get_resource_type_display }}
+          </span>
+          <span class="badge {% if resource.difficulty == 'beginner' %}bg-success{% elif resource.difficulty == 'intermediate' %}bg-warning{% else %}bg-danger{% endif %} me-2">
+            {{ resource.get_difficulty_display }}
+          </span>
+          {% for tag in resource.tags.all %}
+            <a href="{% url 'resource_list' %}?tag={{ tag.slug }}" class="badge bg-secondary text-decoration-none me-1">
+              {{ tag.name }}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% if user.is_authenticated %}
+        <div class="btn-group">
+          {% if user == resource.author %}
+            <a href="{% url 'edit_resource' resource.pk %}" class="btn btn-light">
+              <i class="fas fa-edit"></i> Edit
+            </a>
+            <a href="{% url 'delete_resource' resource.pk %}" class="btn btn-danger">
+              <i class="fas fa-trash"></i> Delete
+            </a>
+          {% endif %}
+          <a href="{% url 'save_resource' resource.pk %}" class="btn btn-light">
+            <i class="fas {% if is_saved %}fa-bookmark{% else %}fa-bookmark-o{% endif %}"></i>
+            {% if is_saved %}Saved{% else %}Save{% endif %}
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-8">
+      <!-- Resource Content -->
+      <div class="resource-meta mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <p class="mb-0">
+              <i class="fas fa-user me-1"></i>
+              Posted by {{ resource.author.username }}
+              <span class="mx-2">•</span>
+              <i class="fas fa-clock me-1"></i>
+              {{ resource.created_at|timesince }} ago
+            </p>
+          </div>
+          <div>
+            {% if user.is_authenticated %}
+              <a href="{% url 'vote_resource' resource.pk 'up' %}" class="btn btn-sm btn-outline-success me-1">
+                <i class="fas fa-thumbs-up"></i> {{ resource.upvotes }}
+              </a>
+              <a href="{% url 'vote_resource' resource.pk 'down' %}" class="btn btn-sm btn-outline-danger">
+                <i class="fas fa-thumbs-down"></i> {{ resource.downvotes }}
+              </a>
+            {% else %}
+              <span class="text-muted">
+                <i class="fas fa-thumbs-up me-1"></i>{{ resource.upvotes }}
+                <span class="mx-2">•</span>
+                <i class="fas fa-thumbs-down me-1"></i>{{ resource.downvotes }}
+              </span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="resource-content mb-4">
+        {{ resource.description|safe }}
+        
+        {% if resource.content %}
+          <hr>
+          {{ resource.content|safe }}
+        {% endif %}
+        
+        {% if resource.url %}
+          <div class="mt-4">
+            <a href="{{ resource.url }}" class="btn btn-primary" target="_blank">
+              <i class="fas fa-external-link-alt me-1"></i>
+              Visit Resource
+            </a>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Comments -->
+      <h3 class="mb-4">Comments</h3>
+      
+      {% if user.is_authenticated %}
+        <div class="comment-form">
+          <form method="post">
+            {% csrf_token %}
+            {{ comment_form.as_p }}
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-comment me-1"></i>
+              Add Comment
+            </button>
+          </form>
+        </div>
+      {% endif %}
+
+      {% if comments %}
+        {% for comment in comments %}
+          <div class="comment">
+            <div class="d-flex justify-content-between">
+              <div>
+                <strong>{{ comment.user.username }}</strong>
+                <small class="text-muted ms-2">{{ comment.created_at|timesince }} ago</small>
+              </div>
+              <div>
+                {% if user.is_authenticated %}
+                  <a href="{% url 'vote_resource_comment' comment.pk 'up' %}" class="text-decoration-none me-2">
+                    <i class="fas fa-thumbs-up"></i> {{ comment.upvotes }}
+                  </a>
+                  <a href="{% url 'vote_resource_comment' comment.pk 'down' %}" class="text-decoration-none">
+                    <i class="fas fa-thumbs-down"></i> {{ comment.downvotes }}
+                  </a>
+                {% else %}
+                  <span class="text-muted">
+                    <i class="fas fa-thumbs-up me-1"></i>{{ comment.upvotes }}
+                    <span class="mx-2">•</span>
+                    <i class="fas fa-thumbs-down me-1"></i>{{ comment.downvotes }}
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+            <p class="mt-2 mb-1">{{ comment.content }}</p>
+            {% if user.is_authenticated %}
+              <div class="comment-actions">
+                <a href="#" class="text-decoration-none text-muted me-2" onclick="showReplyForm('{{ comment.pk }}')">Reply</a>
+                {% if user == comment.user %}
+                  <a href="#" class="text-decoration-none text-muted me-2">Edit</a>
+                  <a href="#" class="text-decoration-none text-danger">Delete</a>
+                {% endif %}
+              </div>
+              <!-- Reply Form (hidden by default) -->
+              <div id="reply-form-{{ comment.pk }}" class="mt-3" style="display: none;">
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="parent_id" value="{{ comment.pk }}">
+                  {{ comment_form.content }}
+                  <div class="mt-2">
+                    <button type="submit" class="btn btn-sm btn-primary">Submit Reply</button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="hideReplyForm('{{ comment.pk }}')">Cancel</button>
+                  </div>
+                </form>
+              </div>
+            {% endif %}
+
+            <!-- Nested Comments -->
+            {% if comment.replies.exists %}
+              <div class="comment-thread mt-3">
+                {% for reply in comment.replies.all %}
+                  <div class="comment">
+                    <div class="d-flex justify-content-between">
+                      <div>
+                        <strong>{{ reply.user.username }}</strong>
+                        <small class="text-muted ms-2">{{ reply.created_at|timesince }} ago</small>
+                      </div>
+                      <div>
+                        {% if user.is_authenticated %}
+                          <a href="{% url 'vote_resource_comment' reply.pk 'up' %}" class="text-decoration-none me-2">
+                            <i class="fas fa-thumbs-up"></i> {{ reply.upvotes }}
+                          </a>
+                          <a href="{% url 'vote_resource_comment' reply.pk 'down' %}" class="text-decoration-none">
+                            <i class="fas fa-thumbs-down"></i> {{ reply.downvotes }}
+                          </a>
+                        {% else %}
+                          <span class="text-muted">
+                            <i class="fas fa-thumbs-up me-1"></i>{{ reply.upvotes }}
+                            <span class="mx-2">•</span>
+                            <i class="fas fa-thumbs-down me-1"></i>{{ reply.downvotes }}
+                          </span>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <p class="mt-2 mb-1">{{ reply.content }}</p>
+                    {% if user.is_authenticated and user == reply.user %}
+                      <div class="comment-actions">
+                        <a href="#" class="text-decoration-none text-muted me-2">Edit</a>
+                        <a href="#" class="text-decoration-none text-danger">Delete</a>
+                      </div>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted">No comments yet. Be the first to comment!</p>
+      {% endif %}
+    </div>
+
+    <div class="col-md-4">
+      <!-- Category Info -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Category</h5>
+        </div>
+        <div class="card-body">
+          <p class="mb-0">
+            {% if resource.category.parent %}
+              <a href="{% url 'resource_list' %}?category={{ resource.category.parent.slug }}" class="text-decoration-none">
+                {{ resource.category.parent.name }}
+              </a>
+              <i class="fas fa-chevron-right mx-2"></i>
+            {% endif %}
+            <a href="{% url 'resource_list' %}?category={{ resource.category.slug }}" class="text-decoration-none">
+              {{ resource.category.name }}
+            </a>
+          </p>
+        </div>
+      </div>
+
+      <!-- Related Resources -->
+      {% if related_resources %}
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Related Resources</h5>
+          </div>
+          <div class="card-body">
+            <div class="list-group list-group-flush">
+              {% for related in related_resources %}
+                <a href="{% url 'resource_detail' related.pk %}" class="list-group-item list-group-item-action">
+                  <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">{{ related.title }}</h6>
+                    <small class="text-muted">{{ related.created_at|timesince }}</small>
+                  </div>
+                  <small class="text-muted">
+                    {{ related.get_resource_type_display }} •
+                    {{ related.get_difficulty_display }}
+                  </small>
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showReplyForm(commentId) {
+  document.getElementById(`reply-form-${commentId}`).style.display = 'block';
+}
+
+function hideReplyForm(commentId) {
+  document.getElementById(`reply-form-${commentId}`).style.display = 'none';
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,199 @@
+{% extends 'content/base.html' %}
+{% load static %}
+
+{% block title %}Study Rooms{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title">
+      <i class="fas fa-users me-2"></i>Study Rooms
+    </h1>
+    {% if user.is_authenticated %}
+      <a href="{% url 'create_study_room' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>Create Room
+      </a>
+    {% endif %}
+  </div>
+
+  <!-- Filters -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        <div class="col-md-3">
+          <label for="type" class="form-label">Room Type</label>
+          <select name="type" id="type" class="form-select">
+            <option value="">All Types</option>
+            {% for type_code, type_name in room_types %}
+              <option value="{{ type_code }}" {% if request.GET.type == type_code %}selected{% endif %}>
+                {{ type_name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="course" class="form-label">Course</label>
+          <select name="course" id="course" class="form-select">
+            <option value="">All Courses</option>
+            {% for course in courses %}
+              <option value="{{ course.slug }}" {% if request.GET.course == course.slug %}selected{% endif %}>
+                {{ course.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label for="q" class="form-label">Search</label>
+          <input type="text" name="q" id="q" class="form-control" placeholder="Search rooms..." 
+                 value="{{ request.GET.q }}">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="fas fa-search me-1"></i>Filter
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Your Rooms -->
+  {% if user.is_authenticated and joined_rooms %}
+    <section class="mb-4">
+      <h2 class="section-header">
+        <i class="fas fa-bookmark me-2"></i>Your Rooms
+      </h2>
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for room in joined_rooms %}
+          <div class="col">
+            <div class="card h-100">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <span class="badge bg-primary">{{ room.get_room_type_display }}</span>
+                  {% if room.is_private %}
+                    <span class="badge bg-warning">
+                      <i class="fas fa-lock me-1"></i>Private
+                    </span>
+                  {% endif %}
+                </div>
+                <h5 class="card-title">
+                  <a href="{% url 'study_room_detail' room.pk %}" class="text-decoration-none">
+                    {{ room.name }}
+                  </a>
+                </h5>
+                <p class="card-text">{{ room.description|truncatewords:20 }}</p>
+              </div>
+              <div class="card-footer bg-transparent">
+                <small class="text-muted">
+                  <i class="fas fa-users me-1"></i>{{ room.members.count }}/{{ room.max_members }} members
+                  {% if room.course %}
+                    <span class="mx-2">•</span>
+                    <i class="fas fa-book me-1"></i>{{ room.course.name }}
+                  {% endif %}
+                </small>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  <!-- All Rooms -->
+  <section>
+    <h2 class="section-header">
+      <i class="fas fa-globe me-2"></i>All Study Rooms
+    </h2>
+    {% if rooms %}
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for room in rooms %}
+          <div class="col">
+            <div class="card h-100">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <span class="badge bg-primary">{{ room.get_room_type_display }}</span>
+                  {% if room.is_private %}
+                    <span class="badge bg-warning">
+                      <i class="fas fa-lock me-1"></i>Private
+                    </span>
+                  {% endif %}
+                </div>
+                <h5 class="card-title">
+                  <a href="{% url 'study_room_detail' room.pk %}" class="text-decoration-none">
+                    {{ room.name }}
+                  </a>
+                </h5>
+                <p class="card-text">{{ room.description|truncatewords:20 }}</p>
+                <div class="mb-3">
+                  <small class="text-muted">
+                    Created by {{ room.creator.username }}
+                    <span class="mx-2">•</span>
+                    {{ room.created_at|timesince }} ago
+                  </small>
+                </div>
+                {% if user.is_authenticated and room not in joined_rooms %}
+                  <a href="{% url 'join_study_room' room.pk %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-sign-in-alt me-1"></i>Join Room
+                  </a>
+                {% endif %}
+              </div>
+              <div class="card-footer bg-transparent">
+                <small class="text-muted">
+                  <i class="fas fa-users me-1"></i>{{ room.members.count }}/{{ room.max_members }} members
+                  {% if room.course %}
+                    <span class="mx-2">•</span>
+                    <i class="fas fa-book me-1"></i>{{ room.course.name }}
+                  {% endif %}
+                </small>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-center py-5">
+        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+        <h3>No study rooms found</h3>
+        <p class="text-muted">
+          {% if request.GET %}
+            No rooms match your search criteria.
+            <a href="{% url 'study_room_list' %}" class="btn btn-link">Clear filters</a>
+          {% else %}
+            Be the first to create a study room!
+          {% endif %}
+        </p>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .section-header {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--bs-primary);
+  }
+  
+  .card {
+    transition: transform 0.2s;
+  }
+  
+  .card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .card-title {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .card-title a {
+    color: var(--bs-dark);
+  }
+  
+  .card-title a:hover {
+    color: var(--bs-primary);
+  }
+</style>
+{% endblock %} 

@@ -1,0 +1,277 @@
+{% extends 'content/base.html' %}
+{% load static %}
+
+{% block title %}{{ room.name }} - Study Room{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <!-- Main Content -->
+    <div class="col-md-8">
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <h1 class="card-title h3">{{ room.name }}</h1>
+              <div class="d-flex align-items-center">
+                <span class="badge bg-primary me-2">{{ room.get_room_type_display }}</span>
+                {% if room.is_private %}
+                  <span class="badge bg-warning me-2">
+                    <i class="fas fa-lock me-1"></i>Private
+                  </span>
+                {% endif %}
+                {% if room.course %}
+                  <span class="badge bg-info">
+                    <i class="fas fa-book me-1"></i>{{ room.course.name }}
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+            {% if is_member %}
+              <div class="btn-group">
+                {% if user_role == 'admin' %}
+                  <a href="#" class="btn btn-light">
+                    <i class="fas fa-cog"></i> Settings
+                  </a>
+                {% endif %}
+                <a href="{% url 'leave_study_room' room.pk %}" class="btn btn-danger">
+                  <i class="fas fa-sign-out-alt"></i> Leave Room
+                </a>
+              </div>
+            {% else %}
+              <a href="{% url 'join_study_room' room.pk %}" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt me-1"></i>Join Room
+              </a>
+            {% endif %}
+          </div>
+          
+          <p class="card-text">{{ room.description }}</p>
+          
+          <div class="d-flex align-items-center text-muted">
+            <small>
+              <i class="fas fa-user me-1"></i>Created by {{ room.creator.username }}
+              <span class="mx-2">•</span>
+              <i class="fas fa-clock me-1"></i>{{ room.created_at|timesince }} ago
+              <span class="mx-2">•</span>
+              <i class="fas fa-users me-1"></i>{{ room.members.count }}/{{ room.max_members }} members
+            </small>
+          </div>
+        </div>
+      </div>
+
+      {% if is_member %}
+        <!-- Study Session -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Study Session</h5>
+          </div>
+          <div class="card-body">
+            {% if active_session %}
+              <div class="alert alert-success">
+                <h6 class="alert-heading">
+                  <i class="fas fa-clock me-1"></i>Session in Progress
+                </h6>
+                <p class="mb-1">Started {{ active_session.start_time|timesince }} ago by {{ active_session.started_by.username }}</p>
+                {% if active_session.goals %}
+                  <hr>
+                  <p class="mb-0"><strong>Goals:</strong> {{ active_session.goals }}</p>
+                {% endif %}
+              </div>
+              {% if user == active_session.started_by or user_role == 'admin' %}
+                <form action="{% url 'end_study_session' room.pk active_session.pk %}" method="post" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-stop-circle me-1"></i>End Session
+                  </button>
+                </form>
+              {% endif %}
+            {% else %}
+              <p class="text-muted mb-3">No active study session. Start one to track your study time!</p>
+              <a href="{% url 'start_study_session' room.pk %}" class="btn btn-success">
+                <i class="fas fa-play-circle me-1"></i>Start Session
+              </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Chat Section -->
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Chat</h5>
+          </div>
+          <div class="card-body">
+            <div id="chat-messages" class="chat-messages mb-3">
+              {% for message in messages %}
+                <div class="chat-message {% if message.is_system_message %}system-message{% endif %}">
+                  {% if not message.is_system_message %}
+                    <strong>{{ message.user.username }}:</strong>
+                  {% endif %}
+                  {{ message.message }}
+                  <small class="text-muted d-block">{{ message.created_at|timesince }} ago</small>
+                </div>
+              {% empty %}
+                <p class="text-center text-muted">No messages yet. Start the conversation!</p>
+              {% endfor %}
+            </div>
+            <form id="chat-form" method="post" action="{% url 'send_chat_message' room.pk %}">
+              {% csrf_token %}
+              <div class="input-group">
+                <input type="text" name="message" class="form-control" placeholder="Type your message...">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-paper-plane"></i>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
+      <!-- Members List -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-users me-2"></i>Members
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush">
+            {% for member in members %}
+              <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="mb-0">{{ member.username }}</h6>
+                    {% with membership=member.roommembership_set.get %}
+                      <small class="text-muted">
+                        {{ membership.get_role_display }}
+                        {% if membership.role == 'admin' %}
+                          <i class="fas fa-crown text-warning ms-1"></i>
+                        {% elif membership.role == 'moderator' %}
+                          <i class="fas fa-shield-alt text-info ms-1"></i>
+                        {% endif %}
+                      </small>
+                    {% endwith %}
+                  </div>
+                  {% if active_session and member in active_session.participants.all %}
+                    <span class="badge bg-success">
+                      <i class="fas fa-book-reader me-1"></i>Studying
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Study Streaks -->
+      {% if is_member %}
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title mb-0">
+              <i class="fas fa-fire me-2"></i>Study Streaks
+            </h5>
+          </div>
+          <div class="card-body">
+            {% for member in members %}
+              {% with streak=member.study_streak %}
+                {% if streak %}
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                      <h6 class="mb-0">{{ member.username }}</h6>
+                      <small class="text-muted">
+                        {{ streak.total_study_sessions }} sessions
+                      </small>
+                    </div>
+                    <div class="text-end">
+                      <div class="h5 mb-0">{{ streak.current_streak }} days</div>
+                      <small class="text-muted">Current Streak</small>
+                    </div>
+                  </div>
+                {% endif %}
+              {% endwith %}
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .chat-messages {
+    height: 400px;
+    overflow-y: auto;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 0.25rem;
+  }
+  
+  .chat-message {
+    margin-bottom: 1rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  .system-message {
+    background: #e9ecef;
+    color: #6c757d;
+    font-style: italic;
+  }
+  
+  .card-title {
+    color: var(--bs-primary);
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-form');
+    
+    // Scroll to bottom of chat
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Handle chat form submission
+    chatForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          // Add new message to chat
+          const messageDiv = document.createElement('div');
+          messageDiv.className = 'chat-message';
+          messageDiv.innerHTML = `
+            <strong>${data.message.user}:</strong>
+            ${data.message.message}
+            <small class="text-muted d-block">just now</small>
+          `;
+          chatMessages.appendChild(messageDiv);
+          
+          // Clear input and scroll to bottom
+          chatForm.reset();
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+      })
+      .catch(error => console.error('Error:', error));
+    });
+  });
+</script>
+{% endblock %} 

@@ -1,0 +1,107 @@
+{% extends 'content/base.html' %}
+{% load static %}
+
+{% block title %}Start Study Session - {{ room.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title h4 mb-0">
+            <i class="fas fa-play-circle me-2"></i>Start Study Session
+          </h2>
+        </div>
+        <div class="card-body">
+          <p class="text-muted mb-4">
+            You're about to start a study session in <strong>{{ room.name }}</strong>.
+            Set your goals to stay focused and track your progress!
+          </p>
+
+          <form method="post">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+              <label for="{{ form.goals.id_for_label }}" class="form-label">
+                Session Goals
+              </label>
+              {{ form.goals }}
+              {% if form.goals.help_text %}
+                <div class="form-text">{{ form.goals.help_text }}</div>
+              {% endif %}
+              {% if form.goals.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.goals.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <a href="{% url 'study_room_detail' room.pk %}" class="btn btn-light">
+                <i class="fas fa-arrow-left me-1"></i>Back to Room
+              </a>
+              <button type="submit" class="btn btn-success">
+                <i class="fas fa-play-circle me-1"></i>Start Session
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Study Tips -->
+      <div class="card mt-4">
+        <div class="card-header">
+          <h3 class="card-title h5 mb-0">
+            <i class="fas fa-lightbulb me-2"></i>Study Tips
+          </h3>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h6>Setting Good Goals</h6>
+              <ul class="mb-0">
+                <li>Be specific about what you want to achieve</li>
+                <li>Break down large topics into smaller tasks</li>
+                <li>Set realistic timeframes</li>
+                <li>Focus on understanding, not just completion</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <h6>Effective Study Techniques</h6>
+              <ul class="mb-0">
+                <li>Use active recall methods</li>
+                <li>Take regular short breaks (Pomodoro)</li>
+                <li>Explain concepts to others</li>
+                <li>Review and summarize key points</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .card-title {
+    color: var(--bs-primary);
+  }
+  
+  ul {
+    padding-left: 1.2rem;
+  }
+  
+  ul li {
+    margin-bottom: 0.5rem;
+  }
+  
+  ul li:last-child {
+    margin-bottom: 0;
+  }
+</style>
+{% endblock %} 

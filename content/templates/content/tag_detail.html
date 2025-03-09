@@ -1,0 +1,88 @@
+{% extends 'content/base.html' %}
+
+{% block title %}{{ tag.name }} - DSA Hub{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <h1 class="mb-4">
+        <i class="fas fa-tag me-2"></i>
+        {{ tag.name }}
+      </h1>
+      {% if tag.description %}
+        <p class="lead">{{ tag.description }}</p>
+      {% endif %}
+      <p class="text-muted">
+        <i class="fas fa-file-alt me-1"></i> {{ articles.count }} article{{ articles.count|pluralize }}
+      </p>
+    </div>
+    <div class="col-md-4 text-end align-self-center">
+      <a href="{% url 'edit_tag' tag.slug %}" class="btn btn-outline-secondary">
+        <i class="fas fa-edit me-1"></i> Edit Tag
+      </a>
+      <a href="{% url 'tag_list' %}" class="btn btn-outline-primary ms-2">
+        <i class="fas fa-tags me-1"></i> All Tags
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      {% if articles %}
+        {% for article in articles %}
+          <div class="card mb-3">
+            <div class="card-body">
+              <div class="d-flex">
+                <div class="vote-column text-center me-3">
+                  <a href="{% url 'vote_article' article.pk 'up' %}" class="d-block text-decoration-none">
+                    <i class="fas fa-arrow-up"></i>
+                  </a>
+                  <span class="d-block my-2 fw-bold">{{ article.net_votes }}</span>
+                  <a href="{% url 'vote_article' article.pk 'down' %}" class="d-block text-decoration-none">
+                    <i class="fas fa-arrow-down"></i>
+                  </a>
+                </div>
+                <div class="content-column flex-grow-1">
+                  <h3 class="card-title">
+                    <a href="{% url 'article_detail' article.pk %}" class="text-decoration-none">
+                      {{ article.title }}
+                    </a>
+                  </h3>
+                  <div class="article-meta text-muted mb-2">
+                    <small>
+                      <i class="fas fa-user me-1"></i> {{ article.author.username }}
+                      <i class="fas fa-calendar-alt ms-3 me-1"></i> {{ article.created_at|date:"M d, Y" }}
+                      <i class="fas fa-comments ms-3 me-1"></i> {{ article.comments.count }} comments
+                      <i class="fas fa-folder ms-3 me-1"></i> 
+                      <a href="{% url 'community_detail' article.community.pk %}" class="text-decoration-none">
+                        {{ article.community.name }}
+                      </a>
+                    </small>
+                  </div>
+                  <div class="article-tags mb-2">
+                    {% for tag in article.tags.all %}
+                      <a href="{% url 'tag_detail' tag.slug %}" class="badge bg-primary text-decoration-none me-1">
+                        {{ tag.name }}
+                      </a>
+                    {% endfor %}
+                  </div>
+                  <p class="card-text">{{ article.content|striptags|truncatewords:50 }}</p>
+                  <a href="{% url 'article_detail' article.pk %}" class="btn btn-sm btn-outline-primary">
+                    Read More
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>
+          No articles have been tagged with "{{ tag.name }}" yet.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %} 

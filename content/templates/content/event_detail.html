@@ -1,0 +1,250 @@
+{% extends 'content/base.html' %}
+
+{% block title %}{{ event.title }} - DSA Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+  .event-header {
+    background: linear-gradient(135deg, var(--primary-color), #2d4373);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 10px;
+  }
+  
+  .event-status {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+  }
+  
+  .status-upcoming { background-color: #28a745; }
+  .status-ongoing { background-color: #007bff; }
+  .status-completed { background-color: #6c757d; }
+  .status-cancelled { background-color: #dc3545; }
+  
+  .participant-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  
+  .participant-list {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  .feedback-card {
+    border-left: 4px solid var(--primary-color);
+  }
+  
+  .star-rating {
+    color: #ffc107;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Event Header -->
+  <div class="event-header">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <div class="d-flex align-items-center mb-2">
+            <span class="event-status status-{{ event.status }}"></span>
+            <span class="badge bg-primary me-2">{{ event.get_event_type_display }}</span>
+            <span class="badge bg-secondary">{{ event.get_status_display }}</span>
+          </div>
+          <h1 class="mb-3">{{ event.title }}</h1>
+          <p class="mb-2">
+            <i class="fas fa-calendar me-2"></i>
+            {{ event.start_time|date:"l, F d, Y" }} at {{ event.start_time|date:"g:i A" }}
+            to {{ event.end_time|date:"g:i A" }}
+          </p>
+          <p class="mb-0">
+            <i class="fas fa-map-marker-alt me-2"></i>
+            {% if event.is_online %}Online{% else %}{{ event.location }}{% endif %}
+          </p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+          {% if user.is_authenticated %}
+            {% if participant %}
+              {% if event.status == 'upcoming' %}
+                <form method="post" action="{% url 'leave_event' event.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-light">
+                    <i class="fas fa-sign-out-alt me-1"></i> Leave Event
+                  </button>
+                </form>
+              {% endif %}
+              {% if event.status == 'completed' and not participant.feedback %}
+                <a href="{% url 'submit_feedback' event.pk %}" class="btn btn-outline-light">
+                  <i class="fas fa-star me-1"></i> Submit Feedback
+                </a>
+              {% endif %}
+            {% else %}
+              {% if event.status == 'upcoming' and not event.is_full %}
+                <form method="post" action="{% url 'join_event' event.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-light">
+                    <i class="fas fa-sign-in-alt me-1"></i> Join Event
+                  </button>
+                </form>
+              {% endif %}
+            {% endif %}
+            {% if is_organizer and event.status == 'upcoming' %}
+              <a href="{% url 'edit_event' event.pk %}" class="btn btn-outline-light ms-2">
+                <i class="fas fa-edit me-1"></i> Edit
+              </a>
+              <a href="{% url 'cancel_event' event.pk %}" class="btn btn-outline-danger ms-2">
+                <i class="fas fa-times me-1"></i> Cancel
+              </a>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Main Content -->
+    <div class="col-md-8">
+      <!-- Description -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h5 class="card-title mb-3">About this Event</h5>
+          {{ event.description|safe }}
+          
+          {% if event.prerequisites %}
+            <h6 class="mt-4 mb-2">Prerequisites</h6>
+            {{ event.prerequisites|linebreaks }}
+          {% endif %}
+          
+          {% if event.tags.exists %}
+            <div class="mt-4">
+              {% for tag in event.tags.all %}
+                <a href="{% url 'tag_detail' tag.slug %}" class="badge bg-secondary text-decoration-none me-1">
+                  {{ tag.name }}
+                </a>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Feedback -->
+      {% if event.status == 'completed' %}
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3">Event Feedback</h5>
+            {% with feedback_participants=event.participants.filter(feedback__isnull=False) %}
+              {% if feedback_participants %}
+                {% for participant in feedback_participants %}
+                  <div class="card feedback-card mb-3">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex align-items-center">
+                          {% if participant.user.profile.profile_picture %}
+                            <img src="{{ participant.user.profile.profile_picture.url }}" alt="{{ participant.user.username }}" class="participant-avatar me-2">
+                          {% else %}
+                            <img src="https://ui-avatars.com/api/?name={{ participant.user.username }}&size=40" alt="{{ participant.user.username }}" class="participant-avatar me-2">
+                          {% endif %}
+                          <div>
+                            <h6 class="mb-1">{{ participant.user.get_full_name|default:participant.user.username }}</h6>
+                            <small class="text-muted">{{ participant.get_role_display }}</small>
+                          </div>
+                        </div>
+                        {% if participant.rating %}
+                          <div class="star-rating">
+                            {% for i in "12345"|make_list %}
+                              {% if forloop.counter <= participant.rating %}
+                                <i class="fas fa-star"></i>
+                              {% else %}
+                                <i class="far fa-star"></i>
+                              {% endif %}
+                            {% endfor %}
+                          </div>
+                        {% endif %}
+                      </div>
+                      {% if participant.feedback %}
+                        <p class="mt-3 mb-0">{{ participant.feedback }}</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <p class="text-muted">No feedback has been submitted yet.</p>
+              {% endif %}
+            {% endwith %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
+      <!-- Organizer -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Organizer</h5>
+          <div class="d-flex align-items-center">
+            {% if event.organizer.profile.profile_picture %}
+              <img src="{{ event.organizer.profile.profile_picture.url }}" alt="{{ event.organizer.username }}" class="participant-avatar me-2">
+            {% else %}
+              <img src="https://ui-avatars.com/api/?name={{ event.organizer.username }}&size=40" alt="{{ event.organizer.username }}" class="participant-avatar me-2">
+            {% endif %}
+            <div>
+              <h6 class="mb-1">{{ event.organizer.get_full_name|default:event.organizer.username }}</h6>
+              <a href="{% url 'profile_detail' event.organizer.username %}" class="text-decoration-none">
+                View Profile
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Participants -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            Participants
+            <span class="badge bg-secondary ms-1">
+              {{ event.participant_count }}
+              {% if event.max_participants %}
+                / {{ event.max_participants }}
+              {% endif %}
+            </span>
+          </h5>
+        </div>
+        <div class="card-body participant-list">
+          {% if participants %}
+            <div class="list-group list-group-flush">
+              {% for participant in participants %}
+                <div class="list-group-item">
+                  <div class="d-flex align-items-center">
+                    {% if participant.user.profile.profile_picture %}
+                      <img src="{{ participant.user.profile.profile_picture.url }}" alt="{{ participant.user.username }}" class="participant-avatar me-2">
+                    {% else %}
+                      <img src="https://ui-avatars.com/api/?name={{ participant.user.username }}&size=40" alt="{{ participant.user.username }}" class="participant-avatar me-2">
+                    {% endif %}
+                    <div>
+                      <h6 class="mb-1">{{ participant.user.get_full_name|default:participant.user.username }}</h6>
+                      <small class="text-muted">{{ participant.get_role_display }}</small>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted mb-0">No participants yet.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

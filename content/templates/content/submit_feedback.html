@@ -1,0 +1,104 @@
+{% extends 'content/base.html' %}
+
+{% block title %}Submit Feedback - {{ event.title }} - DSA Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+  .star-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+  }
+  
+  .star-rating input {
+    display: none;
+  }
+  
+  .star-rating label {
+    color: #ddd;
+    font-size: 24px;
+    padding: 0 2px;
+    cursor: pointer;
+  }
+  
+  .star-rating label:hover,
+  .star-rating label:hover ~ label,
+  .star-rating input:checked ~ label {
+    color: #ffc107;
+  }
+  
+  .event-info {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <h1 class="page-title mb-4">
+        <i class="fas fa-star me-2"></i>Submit Feedback
+      </h1>
+
+      <!-- Event Info -->
+      <div class="event-info">
+        <h5 class="mb-3">{{ event.title }}</h5>
+        <p class="mb-2">
+          <i class="fas fa-calendar me-2"></i>
+          {{ event.start_time|date:"l, F d, Y" }} at {{ event.start_time|date:"g:i A" }}
+        </p>
+        <p class="mb-0">
+          <i class="fas fa-map-marker-alt me-2"></i>
+          {% if event.is_online %}Online{% else %}{{ event.location }}{% endif %}
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            
+            <!-- Rating -->
+            <div class="mb-4">
+              <label class="form-label">Rating</label>
+              <div class="star-rating">
+                {% for i in "54321"|make_list %}
+                  <input type="radio" name="rating" value="{{ i }}" id="star{{ i }}" {% if form.rating.value|stringformat:"s" == i %}checked{% endif %}>
+                  <label for="star{{ i }}"><i class="fas fa-star"></i></label>
+                {% endfor %}
+              </div>
+              {{ form.rating.errors }}
+              {% if form.rating.help_text %}
+                <div class="form-text">{{ form.rating.help_text }}</div>
+              {% endif %}
+            </div>
+            
+            <!-- Feedback -->
+            <div class="mb-4">
+              <label for="{{ form.feedback.id_for_label }}" class="form-label">Feedback</label>
+              {{ form.feedback }}
+              {{ form.feedback.errors }}
+              {% if form.feedback.help_text %}
+                <div class="form-text">{{ form.feedback.help_text }}</div>
+              {% endif %}
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <a href="{% url 'event_detail' event.pk %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Back to Event
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-paper-plane me-1"></i> Submit Feedback
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

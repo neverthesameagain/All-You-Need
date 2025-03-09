@@ -1,0 +1,1 @@
+web: gunicorn dsa_hub.wsgi:application --log-file - 
