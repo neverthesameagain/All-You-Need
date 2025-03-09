@@ -10,46 +10,30 @@ CampVerse is a modern educational collaboration platform designed to enhance lea
 - [x] Multiple room types (General, Course-Specific, Project, Interview Prep)
 - [x] Member role management (Admin, Moderator, Member)
 - [x] Study session tracking
-- [ ] Real-time chat implementation
-- [ ] Voice/Video chat integration
-- [ ] Collaborative whiteboard
-- [ ] Screen sharing capability
+
 
 ### Resource Library
 - [x] Share educational resources
 - [x] Resource categorization
 - [x] Rating system
-- [ ] Advanced search filters
-- [ ] Resource recommendations
-- [ ] Bulk upload feature
-- [ ] Resource analytics
+
 
 ### Communities
 - [x] Create and join communities
 - [x] Community resources
 - [x] Member management
-- [ ] Community analytics
-- [ ] Advanced moderation tools
-- [ ] Community challenges
-- [ ] Integration with study rooms
 
 ### Events
 - [x] Create educational events
 - [x] Event categories
 - [x] Registration system
-- [ ] Calendar integration
-- [ ] Automated reminders
-- [ ] Event analytics
-- [ ] Virtual event hosting
+
 
 ### User Profiles
 - [x] Personal dashboards
 - [x] Study streak tracking
 - [x] Basic achievements
-- [ ] Advanced analytics
-- [ ] Learning path customization
-- [ ] Skill assessment tools
-- [ ] Portfolio generation
+
 
 ## 🚀 Getting Started
 
