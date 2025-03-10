@@ -1,7 +1,6 @@
-# CampVerse 🎓
+# CampVerse 
 
-CampVerse is a modern educational collaboration platform designed to enhance learning experiences through interactive study rooms, resource sharing, and community engagement.
-
+CampVerse is an all you need at a single place platform wherein the entire InstiCommunity can use it for academic , non academic and also fun uses :) 
 ## 🌟 Features
 
 ### Study Rooms
@@ -9,7 +8,7 @@ CampVerse is a modern educational collaboration platform designed to enhance lea
 - [x] Real-time collaboration spaces
 - [x] Multiple room types (General, Course-Specific, Project, Interview Prep)
 - [x] Member role management (Admin, Moderator, Member)
-- [x] Study session tracking
+- [x] Study sessions
 
 
 ### Resource Library
@@ -81,25 +80,31 @@ python manage.py runserver
 
 ### Phase 1 (Current)
 - [x] Basic study room functionality
-- [x] Resource sharing
+- [x] Your very own Calender
+- [x] Resource sharing and making it the ultra repository
 - [x] User authentication
 - [x] Community creation
 - [x] Event management
-- [x] Dark mode UI
+
 
 ### Phase 2 (In Progress)
+- [ ] A specialized chat based LLM that answers based on the context in resources.
+- [ ] Sectioining the resources of the same courses in different years
 - [ ] Real-time chat implementation
+- [ ] Community Moderators
 - [ ] Advanced search functionality
 - [ ] User notifications system
 - [ ] Mobile responsiveness improvements
 - [ ] Performance optimizations
 
 ### Phase 3 (Planned)
+- [ ] Among us like zone where we can see what other users are doing on the website. 
 - [ ] Mobile application development
 - [ ] API documentation
-- [ ] Integration with popular LMS platforms
+- [ ] Integration with LMS platform
 - [ ] Advanced analytics dashboard
 - [ ] AI-powered study recommendations
+- [ ] Live Streaming
 
 ### Phase 4 (Future)
 - [ ] Voice/Video chat
