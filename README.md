@@ -34,12 +34,7 @@ This is an all you need at a single place platform wherein the entire InstiCommu
 - [x] Basic achievements
 
 
-## 🚀 Getting Started
 
-### Prerequisites
-- Python 3.8+
-- PostgreSQL
-- Node.js (for frontend assets)
 
 
 ## Progress
@@ -83,9 +78,9 @@ This is an all you need at a single place platform wherein the entire InstiCommu
 
 - **Backend**: Django
 - **Database**: PostgreSQL
-- **Frontend**: HTML, CSS, JavaScript
+- **Frontend**: HTML, CSS, JavaScript, React JS
 - **UI Framework**: Bootstrap
-- **Deployment**: Render
+- **Deployment**: Render (Planned)
 - **Storage**: AWS S3 (planned)
 - **Real-time**: WebSockets (planned)
 
